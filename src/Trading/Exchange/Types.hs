@@ -25,7 +25,7 @@ instance Eq MatchingEnv where
   (==) = (==) `on` productId
 
 
-type OrderID = Integer
+type OrderId = Integer
 type Price = Scientific
 type Size = Scientific
 type TradeID = Integer
@@ -38,14 +38,14 @@ data Side = BUY | SELL deriving (Show, Eq)
 
 
 class Order a where
-  orderID :: a -> OrderID
+  orderID :: a -> OrderId
   orderPrice :: a -> Price
   orderSize :: a -> Size
 
 
-data Buy = Buy OrderID Price Size deriving Show
+data Buy = Buy OrderId Price Size deriving Show
 
-data Sell = Sell OrderID Price Size deriving Show
+data Sell = Sell OrderId Price Size deriving Show
 
 
 instance Order Buy where
@@ -72,7 +72,8 @@ data MatchResult a b
   = AgressorLeft a
   | CoAgressorLeft b
   | BothMatched
-  deriving Show
+  | NotMatched a b
+  deriving (Eq, Show)
 
 
 -- | Result of mathcing of 2 Orders.

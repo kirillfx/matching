@@ -1,16 +1,7 @@
 -- | Matching algorithm.
--- Generalized:
--- 1. Draw best CoOrder.
--- 2. Check OrderBook for matchable condition.
--- 3. Match against it.
--- 4. Process MatchResult
--- 5. Go to step#1.
--- Если собрать дополнительную структуру для хранения представления MarketDepth,
--- то можно обойтись без проверок.
 
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE TypeFamilies           #-}
 
 module Trading.Exchange.Matching where
 
@@ -19,6 +10,11 @@ import           Trading.Exchange.Types
 
 
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
+
+
+-- | Delete Order by OrderId
+cancelOrder :: OrderId -> Base (Either String ())
+cancelOrder oid = undefined
 
 
 class (Order a, Order b) => Matching a b | a -> b, b -> a where
@@ -58,7 +54,7 @@ instance Matching Sell Buy where
 
 
 -- | Top level function
-matchOrder :: Either Buy Sell -> Base [Trade]
+matchOrder :: Either Sell Buy -> Base [Trade]
 matchOrder e = case e of
-  Left buy   -> matchRecursively buy
-  Right sell -> matchRecursively sell
+  Left sell -> matchRecursively sell
+  Right buy -> matchRecursively buy
