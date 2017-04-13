@@ -17,7 +17,7 @@ type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
 
 
 -- | Match 2 orders
-match :: Order -> Order -> Base (MatchResult, [Trade])
+match :: Order -> Order -> Base (MatchResult, Trade)
 match (Order oid1 p1 v1 s1) (Order oid2 p2 v2 s2) = undefined
 
 
@@ -32,7 +32,7 @@ insertOrder order = undefined
 
 
 processMatchResult :: MatchResult -> Base [Trade]
-processMatchResult mr = undefined
+processMatchResult BothMatched = return []
 
 
 -- | Match recursively
@@ -45,5 +45,5 @@ matchRecursively order = do
     Just coOrder -> do
       (r,t) <- match order coOrder
       rs <- processMatchResult r
-      return (t `mappend` rs)
+      return (t:rs)
 

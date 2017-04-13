@@ -17,6 +17,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Trading.Exchange.Types
+                     , Trading.Exchange.MarketDepth
                      , Trading.Exchange.Matching
   -- other-modules:       
   -- other-extensions:    
