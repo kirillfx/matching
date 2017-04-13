@@ -21,7 +21,7 @@ import           Trading.Exchange.Types
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
 
 
-class Matching a b | a -> b, b -> a where
+class (Order a, Order b) => Matching a b | a -> b, b -> a where
 
   drawBestCoOrder :: Base (Maybe b)
 
