@@ -27,7 +27,7 @@ instance Eq MatchingEnv where
 
 type OrderID = Integer
 type Price = Scientific
-type Volume = Scientific
+type Size = Scientific
 type TradeID = Integer
 type ProductID = Integer
 type Fee = Scientific
@@ -37,35 +37,46 @@ type Fee = Scientific
 data Side = BUY | SELL deriving (Show, Eq)
 
 
--- | Initial and simplies approach to Order type
-data Order = Order OrderID Price Volume Side deriving Show
+class Order a where
+  orderID :: a -> OrderID
+  orderPrice :: a -> Price
+  orderSize :: a -> Size
+
+
+data Buy = Buy OrderID Price Size deriving Show
+
+data Sell = Sell OrderID Price Size deriving Show
+
+
+instance Order Buy where
+  orderID (Buy oid p s) = oid
+  orderPrice (Buy oid p s) = p
+  orderSize (Buy oid p s) = s
+
+
+instance Order Sell where
+  orderID (Sell oid p s) = oid
+  orderPrice (Sell oid p s) = p
+  orderSize (Sell oid p s) = s
 
 
 -- | Data structure for storing both directions
 data OrderBook =
-  OrderBook { asks :: Map Scientific (Seq Order)
-            , bids :: Map Scientific (Seq Order)
+  OrderBook { asks :: Map Scientific (Seq Sell)
+            , bids :: Map Scientific (Seq Buy)
             } deriving Show
 
 
-drawBestAsk :: OrderBook -> (Order, OrderBook)
-drawBestAsk = undefined
-
-
-drawBestBid :: OrderBook -> (Order, OrderBook)
-drawBestBid = undefined
-
-
 -- | Intermidiate result of matching.
-data MatchResult
-  = AgressorLeft Order
-  | CoAgressorLeft Order
+data MatchResult a b
+  = AgressorLeft a
+  | CoAgressorLeft b
   | BothMatched
   deriving Show
 
 
 -- | Result of mathcing of 2 Orders.
-data Trade = Trade TradeID ProductID Price Volume Fee UTCTime Side
+data Trade = Trade TradeID ProductID Price Size Fee UTCTime Side
 
 
 -- | Log of all activities.

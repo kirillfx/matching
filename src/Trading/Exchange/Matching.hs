@@ -8,42 +8,57 @@
 -- Если собрать дополнительную структуру для хранения представления MarketDepth,
 -- то можно обойтись без проверок.
 
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TypeFamilies           #-}
+
 module Trading.Exchange.Matching where
 
 import           Control.Monad.RWS.Strict
 import           Trading.Exchange.Types
 
+
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
 
 
--- | Match 2 orders
-match :: Order -> Order -> Base (MatchResult, Trade)
-match (Order oid1 p1 v1 s1) (Order oid2 p2 v2 s2) = undefined
+class Matching a b | a -> b, b -> a where
+
+  drawBestCoOrder :: Base (Maybe b)
+
+  match :: a -> b -> Base (MatchResult a b, Trade)
+
+  insertOrder :: a -> Base ()
+
+  processMatchResult :: MatchResult a b -> Base [Trade]
+
+  matchRecursively :: a -> Base [Trade]
+
+  matchRecursively order = do
+    mbCoOrder <- drawBestCoOrder
+    case mbCoOrder of
+      Nothing -> insertOrder order >> return []
+      Just coOrder -> do
+        (r,t) <- match order coOrder
+        rs <- processMatchResult r
+        return (t:rs)
 
 
--- | Draw best coOrder from OrderBook for given Order.
-drawBestCoOrder :: Order -> Base (Maybe Order)
-drawBestCoOrder order = undefined
+instance Matching Buy Sell where
+  drawBestCoOrder = undefined
+  match buy sell = undefined
+  insertOrder buy = undefined
+  processMatchResult mr = undefined
 
 
--- | Insert given order into corresponding direction of OrderBook
-insertOrder :: Order -> Base ()
-insertOrder order = undefined
+instance Matching Sell Buy where
+  drawBestCoOrder = undefined
+  match sell buy = undefined
+  insertOrder sell = undefined
+  processMatchResult mr = undefined
 
 
-processMatchResult :: MatchResult -> Base [Trade]
-processMatchResult BothMatched = return []
-
-
--- | Match recursively
-matchRecursively :: Order
-                 -> Base [Trade]
-matchRecursively order = do
-  mbCoOrder <- drawBestCoOrder order
-  case mbCoOrder of
-    Nothing -> insertOrder order >> return []
-    Just coOrder -> do
-      (r,t) <- match order coOrder
-      rs <- processMatchResult r
-      return (t:rs)
-
+-- | Top level function
+matchOrder :: Either Buy Sell -> Base [Trade]
+matchOrder e = case e of
+  Left buy   -> matchRecursively buy
+  Right sell -> matchRecursively sell
