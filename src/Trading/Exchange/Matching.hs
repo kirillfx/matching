@@ -7,16 +7,27 @@
 
 module Trading.Exchange.Matching where
 
+import           Control.Monad              (void)
 import           Control.Monad.RWS.Strict
+import           Data.Map.Strict            (Map)
+import qualified Data.Map.Strict            as M
+import           Trading.Exchange.Order
+import           Trading.Exchange.OrderBook
 import           Trading.Exchange.Types
-
 
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
 
 
 -- | Delete Order by OrderId
-cancelOrder :: OrderId -> Base (Either String ())
-cancelOrder oid = undefined
+-- cancelOrder :: OrderId -> Base (Either String ())
+-- cancelOrder oid = do
+--   (side,price) <- gets registry
+--   void $ modify (cancelOrder' oid)
+--   where
+--     cancelOrder' :: OrderId -> Side -> Price -> OrderBook -> OrderBook
+--     cancelOrder' i (OrderBook a b) = OrderBook a' b'
+--       where
+--         a' = M.filter
 
 
 class Matching a b | a -> b, b -> a where
@@ -25,7 +36,7 @@ class Matching a b | a -> b, b -> a where
 
   match :: a -> b -> Base (MatchResult a b, Trade)
 
-  insertOrder :: a -> Base ()
+  insertOrderM :: a -> Base ()
 
   processMatchResult :: MatchResult a b -> Base [Trade]
 
@@ -34,38 +45,24 @@ class Matching a b | a -> b, b -> a where
   matchRecursively order = do
     mbCoOrder <- drawBestCoOrder
     case mbCoOrder of
-      Nothing -> insertOrder order >> return []
+      Nothing -> insertOrderM order >> return []
       Just coOrder -> do
         (r,t) <- match order coOrder
         rs <- processMatchResult r
         return (t:rs)
 
 
-instance Matching Buy Sell where
+instance Matching (Order 'BUY) (Order 'SELL) where
   drawBestCoOrder = undefined
   match buy sell = undefined
-  insertOrder buy = undefined
+  insertOrderM buy = undefined
   processMatchResult mr = undefined
 
 
-instance Matching Sell Buy where
-  drawBestCoOrder = undefined
-  match sell buy = undefined
-  insertOrder sell = undefined
-  processMatchResult mr = undefined
-
-
-instance Matching (Order2 'BUY) (Order2 'SELL) where
+instance Matching (Order 'SELL) (Order 'BUY) where
   drawBestCoOrder = undefined
   match buy sell = undefined
-  insertOrder buy = undefined
-  processMatchResult mr = undefined
-
-
-instance Matching (Order2 'SELL) (Order2 'BUY) where
-  drawBestCoOrder = undefined
-  match buy sell = undefined
-  insertOrder buy = undefined
+  insertOrderM buy = undefined
   processMatchResult mr = undefined
 
 
