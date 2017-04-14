@@ -1,4 +1,4 @@
--- |
+-- | OrderBook data structure definition.
 
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -7,9 +7,7 @@ module Trading.Exchange.OrderBook where
 
 import           Control.Lens           hiding ((<|), (|>))
 import           Data.HashMap.Strict    (HashMap)
-import           Data.Maybe             (maybe)
 import           Data.Monoid            ((<>))
-import           Data.Scientific
 import           Data.Set               (Set)
 import qualified Data.Set               as S
 import           Trading.Exchange.Order

@@ -36,7 +36,7 @@ class Matching a b | a -> b, b -> a where
 
   match :: a -> b -> Base (MatchResult a b, Trade)
 
-  insertOrderM :: a -> Base ()
+  insertM :: a -> Base ()
 
   processMatchResult :: MatchResult a b -> Base [Trade]
 
@@ -45,7 +45,7 @@ class Matching a b | a -> b, b -> a where
   matchRecursively order = do
     mbCoOrder <- drawBestCoOrder
     case mbCoOrder of
-      Nothing -> insertOrderM order >> return []
+      Nothing -> insertM order >> return []
       Just coOrder -> do
         (r,t) <- match order coOrder
         rs <- processMatchResult r
@@ -55,14 +55,14 @@ class Matching a b | a -> b, b -> a where
 instance Matching (Order 'BUY) (Order 'SELL) where
   drawBestCoOrder = undefined
   match buy sell = undefined
-  insertOrderM buy = undefined
+  insertM buy = undefined
   processMatchResult mr = undefined
 
 
 instance Matching (Order 'SELL) (Order 'BUY) where
   drawBestCoOrder = undefined
   match buy sell = undefined
-  insertOrderM buy = undefined
+  insertM buy = undefined
   processMatchResult mr = undefined
 
 
