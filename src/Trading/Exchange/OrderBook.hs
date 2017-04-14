@@ -16,10 +16,16 @@ import           Trading.Exchange.Types
 
 -- | Data structure for storing both directions
 data OrderBook =
-  OrderBook { _asks     :: Set (Order 'SELL)
-            , _bids     :: Set (Order 'BUY)
-            , _registry :: HashMap OrderId (Side,Price)
+  OrderBook { _orderBookAsks     :: Set (Order 'SELL)
+            , _orderBookBids     :: Set (Order 'BUY)
+            , _registry          :: HashMap OrderId (Side,Price)
+            , _nextOrderlogIndex :: Integer
+            , _nextTradeId       :: TradeId
             } deriving (Show)
+
+
+emptyOrderBook :: OrderBook
+emptyOrderBook = OrderBook mempty mempty mempty 0 0
 
 
 makeLenses ''OrderBook
@@ -29,10 +35,10 @@ insertOrder :: Either (Order 'SELL) (Order 'BUY)
             -> OrderBook
             -> OrderBook
 insertOrder (Left x) book =
-  book & asks %~ (S.insert x)
+  book & orderBookAsks %~ (S.insert x)
        & registry.at (x^.orderId) ?~ (SELL, x^.orderPrice)
 insertOrder (Right x) book =
-  book & bids %~ (S.insert x)
+  book & orderBookBids %~ (S.insert x)
        & registry.at (x^.orderId) ?~ (BUY, x^.orderPrice)
 
 
@@ -43,8 +49,8 @@ cancelOrder oid book = case book^.registry.at oid of
 
   Just (side,price) -> case side of
 
-    BUY -> (book & bids  %~ (S.filter (not . (== oid) . _orderId))
+    BUY -> (book & orderBookBids  %~ (S.filter (not . (== oid) . _orderId))
                  & registry.at oid .~ Nothing, Right oid)
 
-    SELL -> (book & asks %~ (S.filter (not . (== oid) . _orderId))
+    SELL -> (book & orderBookAsks %~ (S.filter (not . (== oid) . _orderId))
                   & registry.at oid .~ Nothing, Right oid)

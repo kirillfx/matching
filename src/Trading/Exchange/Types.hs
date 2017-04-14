@@ -16,8 +16,8 @@ import           GHC.Generics
 type OrderId = Integer
 type Price = Scientific
 type Size = Scientific
-type TradeID = Integer
-type ProductID = Integer
+type TradeId = Integer
+type ProductId = Integer
 type Fee = Scientific
 
 
@@ -25,9 +25,10 @@ type Fee = Scientific
 -- Timestamp fixed here because of latency between FrontendService and
 -- Product service.
 data MatchingEnv =
-  MatchingEnv { productId     :: !ProductID
+  MatchingEnv { productId     :: !ProductId
               , productName   :: !String
               , executionTime :: !UTCTime -- ^ Fixed execution time.
+              , fee           :: Fee
               } deriving (Generic, Show)
 
 
@@ -50,9 +51,9 @@ data MatchResult a b
 
 -- | Result of mathcing of 2 Orders.
 data Trade =
-  Trade { tradeId        :: !TradeID
-        , tradeProductId :: !ProductID
-        , tradePriec     :: !Price
+  Trade { tradeId        :: !TradeId
+        , tradeProductId :: !ProductId
+        , tradePrice     :: !Price
         , tradeSize      :: !Size
         , tradeFee       :: !Fee
         , tradeTime      :: !UTCTime

@@ -7,6 +7,7 @@
 
 module Trading.Exchange.Matching where
 
+import           Control.Lens
 import           Control.Monad              (void)
 import           Control.Monad.RWS.Strict
 import           Data.Map.Strict            (Map)
@@ -16,6 +17,19 @@ import           Trading.Exchange.OrderBook
 import           Trading.Exchange.Types
 
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
+
+
+getNextOrderlogIndex :: Base Integer
+getNextOrderlogIndex = do
+  i <- gets _nextOrderlogIndex
+  nextOrderlogIndex %= succ
+  return i
+
+getNextTradeId :: Base Integer
+getNextTradeId = do
+  i <- gets _nextTradeId
+  nextTradeId %= succ
+  return i
 
 
 -- | Delete Order by OrderId
@@ -52,7 +66,60 @@ class Matching a b | a -> b, b -> a where
 
 instance Matching (Order 'BUY) (Order 'SELL) where
   drawBestCoOrder = undefined
-  match buy sell = undefined
+  match (Order oid1 p1 v1 t1) (Order oid2 p2 v2 t2) =
+    case compare v1 v2 of
+
+    LT -> do
+      let v' = v2 - v1
+
+      -- Agressor's Orderlog
+      oid <- getNextOrderlogIndex
+      --tell [Execution oid t1 s1 i1 BUY p1 (Volume 0) tid p2]
+
+      -- CoAgressor's Orderlog
+      oid' <- getNextOrderlogIndex
+      --tell [Execution oid' t1 s2 i2 SELL p2 v' tid p2]
+
+      tid <- getNextTradeId
+      pid <- asks productId
+      f <- asks fee
+
+      return ( CoAgressorLeft $ Order oid2 p2 v' t2
+             , Trade tid pid p2 v1 f t1 BUY)
+
+    EQ -> do
+      -- Agressor's Orderlog
+      oid <- getNextOrderlogIndex
+      -- tell [Execution oid t1 s1 i1 BUY p1 (Volume 0) tid p2]
+
+      -- CoAgressor's Orderlog
+      oid' <- getNextOrderlogIndex
+      -- tell [Execution oid' t1 s2 i2 SELL p2 (Volume 0) tid p2]
+
+      tid <- getNextTradeId
+      pid <- asks productId
+      f <- asks fee
+
+      return ( BothMatched, Trade tid pid p2 v1 f t1 BUY)
+
+    GT -> do
+      let v' = v1 - v2
+
+      -- Agressor's Orderlog
+      oid <- getNextOrderlogIndex
+      -- tell [Execution oid t1 s1 i1 BUY p1 v' tid p2]
+
+      -- CoAgressor's Orderlog
+      oid' <- getNextOrderlogIndex
+      -- tell [Execution oid' t1 s2 i2 SELL p2 (Volume 0) tid p2]
+
+      tid <- getNextTradeId
+      pid <- asks productId
+      f <- asks fee
+
+      return ( AgressorLeft $ Order oid1 p1 v' t1
+             , Trade tid pid p2 v2 f t1 SELL)
+
   insertM buy = undefined
   processMatchResult mr = undefined
 
