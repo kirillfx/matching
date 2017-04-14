@@ -12,6 +12,8 @@ import           Control.Monad              (void)
 import           Control.Monad.RWS.Strict
 import           Data.Map.Strict            (Map)
 import qualified Data.Map.Strict            as M
+import           Data.Set                   (Set)
+import qualified Data.Set                   as S
 import           Trading.Exchange.Order
 import           Trading.Exchange.OrderBook
 import           Trading.Exchange.Types
@@ -50,6 +52,8 @@ class Matching a b | a -> b, b -> a where
 
   insertM :: a -> Base ()
 
+  insertM' :: b -> Base ()
+
   processMatchResult :: MatchResult a b -> Base [Trade]
 
   matchRecursively :: a -> Base [Trade]
@@ -65,7 +69,15 @@ class Matching a b | a -> b, b -> a where
 
 
 instance Matching (Order 'BUY) (Order 'SELL) where
-  drawBestCoOrder = undefined
+  drawBestCoOrder = do
+    book <- get
+    let mb  = S.minView (book^.orderBookAsks)
+    case mb of
+      Nothing -> return Nothing
+      Just (x, xs) -> do
+        modify (set orderBookAsks xs)
+        return $ Just x
+
   match (Order oid1 p1 v1 t1) (Order oid2 p2 v2 t2) =
     case compare v1 v2 of
 
@@ -120,14 +132,29 @@ instance Matching (Order 'BUY) (Order 'SELL) where
       return ( AgressorLeft $ Order oid1 p1 v' t1
              , Trade tid pid p2 v2 f t1 SELL)
 
-  insertM buy = undefined
+  insertM buy = modify (insertBuy buy)
+
+  insertM' sell = modify (insertSell sell)
+
   processMatchResult mr = undefined
 
 
 instance Matching (Order 'SELL) (Order 'BUY) where
-  drawBestCoOrder = undefined
+  drawBestCoOrder = do
+    book <- get
+    let mb  = S.maxView (book^.orderBookBids)
+    case mb of
+      Nothing -> return Nothing
+      Just (x, xs) -> do
+        modify (set orderBookBids xs)
+        return $ Just x
+
   match buy sell = undefined
-  insertM buy = undefined
+
+  insertM sell = modify (insertSell sell)
+
+  insertM' buy  = modify (insertBuy buy)
+
   processMatchResult mr = undefined
 
 

@@ -31,6 +31,15 @@ emptyOrderBook = OrderBook mempty mempty mempty 0 0
 makeLenses ''OrderBook
 
 
+insertBuy :: Order 'BUY -> OrderBook -> OrderBook
+insertBuy x book = book & orderBookBids %~ (S.insert x)
+                        & registry.at (x^.orderId) ?~ (BUY, x^.orderPrice)
+
+
+insertSell :: Order 'SELL -> OrderBook -> OrderBook
+insertSell x book = book & orderBookAsks %~ (S.insert x)
+                         & registry.at (x^.orderId) ?~ (SELL, x^.orderPrice)
+
 insertOrder :: Either (Order 'SELL) (Order 'BUY)
             -> OrderBook
             -> OrderBook
