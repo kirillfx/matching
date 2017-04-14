@@ -19,15 +19,13 @@ type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
 
 
 -- | Delete Order by OrderId
--- cancelOrder :: OrderId -> Base (Either String ())
--- cancelOrder oid = do
---   (side,price) <- gets registry
---   void $ modify (cancelOrder' oid)
---   where
---     cancelOrder' :: OrderId -> Side -> Price -> OrderBook -> OrderBook
---     cancelOrder' i (OrderBook a b) = OrderBook a' b'
---       where
---         a' = M.filter
+cancelOrderM :: OrderId -> Base (Either String OrderId)
+cancelOrderM oid = do
+  book <- get
+  let (book', e) = cancelOrder oid book
+  put book'
+  -- TODO: Orderlog
+  return e
 
 
 class Matching a b | a -> b, b -> a where
