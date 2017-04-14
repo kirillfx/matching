@@ -1,5 +1,7 @@
 -- | Matching algorithm.
 
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
@@ -17,7 +19,7 @@ cancelOrder :: OrderId -> Base (Either String ())
 cancelOrder oid = undefined
 
 
-class (Order a, Order b) => Matching a b | a -> b, b -> a where
+class Matching a b | a -> b, b -> a where
 
   drawBestCoOrder :: Base (Maybe b)
 
@@ -53,8 +55,22 @@ instance Matching Sell Buy where
   processMatchResult mr = undefined
 
 
+instance Matching (Order2 'BUY) (Order2 'SELL) where
+  drawBestCoOrder = undefined
+  match buy sell = undefined
+  insertOrder buy = undefined
+  processMatchResult mr = undefined
+
+
+instance Matching (Order2 'SELL) (Order2 'BUY) where
+  drawBestCoOrder = undefined
+  match buy sell = undefined
+  insertOrder buy = undefined
+  processMatchResult mr = undefined
+
+
 -- | Top level function
-matchOrder :: Either Sell Buy -> Base [Trade]
+matchOrder :: (Matching a b, Matching b a) => Either a b -> Base [Trade]
 matchOrder e = case e of
   Left sell -> matchRecursively sell
   Right buy -> matchRecursively buy

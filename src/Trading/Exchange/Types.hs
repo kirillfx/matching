@@ -1,6 +1,8 @@
 -- | Types and structures deifinitions.
 
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DataKinds      #-}
+{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE KindSignatures #-}
 
 module Trading.Exchange.Types where
 
@@ -16,9 +18,13 @@ import           GHC.Generics
 
 
 -- | Environment type for storing all static information about product service.
-data MatchingEnv = MatchingEnv { productId   :: ProductID
-                               , productName :: String
-                               } deriving Show
+-- Timestamp fixed here because of latency between FrontendService and
+-- Product service.
+data MatchingEnv =
+  MatchingEnv { productId     :: ProductID
+              , productName   :: String
+              , executionTime :: UTCTime -- ^ Fixed execution time.
+              } deriving (Generic, Show)
 
 
 instance Eq MatchingEnv where
@@ -34,37 +40,51 @@ type Fee = Scientific
 
 
 -- | Direction of Order, Trade.
-data Side = BUY | SELL deriving (Show, Eq)
+data Side = BUY | SELL deriving (Generic, Show, Eq)
 
 
+data Order2 (d :: Side) =
+  Order { _orderId           :: OrderId
+        , _orderPrice        :: Price
+        , _orderSize         :: Size
+        , _orderCreationTime :: UTCTime
+        } deriving (Generic, Show)
+
+
+
+-- | Accessor methods.
 class Order a where
   orderID :: a -> OrderId
   orderPrice :: a -> Price
   orderSize :: a -> Size
+  orderCreationTime :: a -> UTCTime
 
 
-data Buy = Buy OrderId Price Size deriving Show
+data Buy = Buy OrderId Price Size UTCTime deriving (Generic, Show)
 
-data Sell = Sell OrderId Price Size deriving Show
+
+data Sell = Sell OrderId Price Size UTCTime deriving (Generic, Show)
 
 
 instance Order Buy where
-  orderID (Buy oid p s) = oid
-  orderPrice (Buy oid p s) = p
-  orderSize (Buy oid p s) = s
+  orderID (Buy oid p s t) = oid
+  orderPrice (Buy oid p s t) = p
+  orderSize (Buy oid p s t) = s
+  orderCreationTime (Buy oid p s t) = t
 
 
 instance Order Sell where
-  orderID (Sell oid p s) = oid
-  orderPrice (Sell oid p s) = p
-  orderSize (Sell oid p s) = s
+  orderID (Sell oid p s t) = oid
+  orderPrice (Sell oid p s t) = p
+  orderSize (Sell oid p s t) = s
+  orderCreationTime (Sell oid p s t) = t
 
 
 -- | Data structure for storing both directions
 data OrderBook =
   OrderBook { asks :: Map Scientific (Seq Sell)
             , bids :: Map Scientific (Seq Buy)
-            } deriving Show
+            } deriving (Generic, Show)
 
 
 -- | Intermidiate result of matching.
@@ -73,11 +93,23 @@ data MatchResult a b
   | CoAgressorLeft b
   | BothMatched
   | NotMatched a b
-  deriving (Eq, Show)
+  deriving (Generic, Eq, Show)
 
 
 -- | Result of mathcing of 2 Orders.
-data Trade = Trade TradeID ProductID Price Size Fee UTCTime Side
+data Trade =
+  Trade { tradeId        :: TradeID
+        , tradeProductId :: ProductID
+        , tradePriec     :: Price
+        , tradeSize      :: Size
+        , tradeFee       :: Fee
+        , tradeTime      :: UTCTime
+        , tradeDirection :: Side
+        } deriving (Generic, Show)
+
+
+instance Eq Trade where
+  (==) = (==) `on` tradeId
 
 
 -- | Log of all activities.
@@ -85,4 +117,4 @@ data OrderlogRecord
   = New
   | Canceled
   | Change
-  deriving (Show)
+  deriving (Generic, Show)
