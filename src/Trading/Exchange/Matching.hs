@@ -8,10 +8,7 @@
 module Trading.Exchange.Matching where
 
 import           Control.Lens
-import           Control.Monad              (void)
 import           Control.Monad.RWS.Strict
-import           Data.Map.Strict            (Map)
-import qualified Data.Map.Strict            as M
 import           Data.Set                   (Set)
 import qualified Data.Set                   as S
 import           Trading.Exchange.Order
@@ -55,9 +52,13 @@ class Matching a b | a -> b, b -> a where
   insertM' :: b -> Base ()
 
   processMatchResult :: MatchResult a b -> Base [Trade]
+  processMatchResult (AgressorLeft x)   = matchRecursively x
+  processMatchResult (CoAgressorLeft x) = insertM' x >> return []
+  processMatchResult BothMatched        = return []
+  processMatchResult (NotMatched a b)   = insertM a >> insertM' b >> return []
+
 
   matchRecursively :: a -> Base [Trade]
-
   matchRecursively order = do
     mbCoOrder <- drawBestCoOrder
     case mbCoOrder of
@@ -69,6 +70,7 @@ class Matching a b | a -> b, b -> a where
 
 
 instance Matching (Order 'BUY) (Order 'SELL) where
+
   drawBestCoOrder = do
     book <- get
     let mb  = S.minView (book^.orderBookAsks)
@@ -136,10 +138,9 @@ instance Matching (Order 'BUY) (Order 'SELL) where
 
   insertM' sell = modify (insertSell sell)
 
-  processMatchResult mr = undefined
-
 
 instance Matching (Order 'SELL) (Order 'BUY) where
+
   drawBestCoOrder = do
     book <- get
     let mb  = S.maxView (book^.orderBookBids)
@@ -154,8 +155,6 @@ instance Matching (Order 'SELL) (Order 'BUY) where
   insertM sell = modify (insertSell sell)
 
   insertM' buy  = modify (insertBuy buy)
-
-  processMatchResult mr = undefined
 
 
 -- | Top level function
