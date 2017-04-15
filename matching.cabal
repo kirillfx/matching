@@ -57,3 +57,25 @@ test-suite hspec
   other-modules:
       MatchingSpec
   default-language: Haskell2010
+
+
+executable app
+  main-is:             Main.hs
+  hs-source-dirs:      exchangeTest
+  --other-modules:
+  build-depends:       base >=4.9 && <4.10
+                     , transformers
+                     , mtl
+                     , scientific
+                     , time
+                     , containers
+                     , unordered-containers
+                     , bytestring
+                     , binary
+                     , aeson
+                     , free
+                     , comonad
+                     , lens
+                     , matching
+
+  default-language:    Haskell2010

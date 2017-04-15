@@ -68,7 +68,6 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
         oid' <- getNextOrderlogIndex
         tell [Execution oid' t1 pid i2 (getOrderSide b) p2 v' tid p2]
 
-        -- return ( CoAgressorLeft (Order oid2 p2 v' t2) (Trade tid pid p2 v1 f t1 side))
         return ( CoAgressorLeft (modifySize b v') (Trade tid pid p2 v1 f t1 side))
 
       EQ -> do
@@ -78,11 +77,13 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
 
         -- Agressor's Orderlog
         oid <- getNextOrderlogIndex
-        tell [Execution oid t1 pid i1 BUY p1 0 tid p2]
+        tell [Execution oid t1 pid i1 (getOrderSide a) p1 0 tid p2]
 
         -- CoAgressor's Orderlog
         oid' <- getNextOrderlogIndex
-        tell [Execution oid' t1 pid i2 SELL p2 0 tid p2]
+        tell [Execution oid' t1 pid i2 (getOrderSide b) p2 0 tid p2]
+
+        modify (registry.at i2 .~ Nothing)
 
         return ( BothMatched (Trade tid pid p2 v1 f t1 side))
 
@@ -100,6 +101,8 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
         -- CoAgressor's Orderlog
         oid' <- getNextOrderlogIndex
         tell [Execution oid' t1 pid i2 SELL p2 0 tid p2]
+
+        modify (registry.at i2 .~ Nothing)
 
         return ( AgressorLeft (modifySize a v') (Trade tid pid p2 v2 f t1 side))
       where
@@ -126,10 +129,22 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
   matchRecursively :: a -> Base [Trade]
   matchRecursively order = do
     mbCoOrder <- drawBestCoOrder
+    oid <- getNextOrderlogIndex
+    pid <- asks productId
+    f <- asks fee
+
+    tell [Insertion oid t pid side i1 p1 v1]
     case mbCoOrder of
       Nothing -> insertM order >> return []
       Just coOrder -> do
         match order coOrder >>= processMatchResult
+    where
+      side = getOrderSide order
+      t = getOrderCreationTime order
+      i1 = getOrderId order
+      p1 = getOrderPrice order
+      v1 = getOrderSize order
+
 
 
 instance Matching (Order 'BUY) (Order 'SELL) where
