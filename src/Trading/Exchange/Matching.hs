@@ -9,11 +9,12 @@ module Trading.Exchange.Matching where
 
 import           Control.Lens
 import           Control.Monad.RWS.Strict
-import           Data.Function              (on)
-import           Data.Set                   (Set)
-import qualified Data.Set                   as S
+import           Data.Function                   (on)
+import           Data.Set                        (Set)
+import qualified Data.Set                        as S
 import           Trading.Exchange.Order
 import           Trading.Exchange.OrderBook
+import           Trading.Exchange.OrderlogRecord
 import           Trading.Exchange.Types
 
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
@@ -57,54 +58,56 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
       LT -> do
         let v' = v2 - v1
 
-        -- Agressor's Orderlog
-        oid <- getNextOrderlogIndex
-        --tell [Execution oid t1 s1 i1 BUY p1 (Volume 0) tid p2]
-
-        -- CoAgressor's Orderlog
-        oid' <- getNextOrderlogIndex
-        --tell [Execution oid' t1 s2 i2 SELL p2 v' tid p2]
-
         tid <- getNextTradeId
         pid <- asks productId
         f <- asks fee
+
+        -- Agressor's Orderlog
+        oid <- getNextOrderlogIndex
+        tell [Execution oid t1 pid i1 (getOrderSide a) p1 0 tid p2]
+
+        -- CoAgressor's Orderlog
+        oid' <- getNextOrderlogIndex
+        tell [Execution oid' t1 pid i2 (getOrderSide b) p2 v' tid p2]
 
         -- return ( CoAgressorLeft (Order oid2 p2 v' t2) (Trade tid pid p2 v1 f t1 side))
         return ( CoAgressorLeft (modifySize b v') (Trade tid pid p2 v1 f t1 side))
 
       EQ -> do
-        -- Agressor's Orderlog
-        oid <- getNextOrderlogIndex
-        -- tell [Execution oid t1 s1 i1 BUY p1 (Volume 0) tid p2]
-
-        -- CoAgressor's Orderlog
-        oid' <- getNextOrderlogIndex
-        -- tell [Execution oid' t1 s2 i2 SELL p2 (Volume 0) tid p2]
-
         tid <- getNextTradeId
         pid <- asks productId
         f <- asks fee
+
+        -- Agressor's Orderlog
+        oid <- getNextOrderlogIndex
+        tell [Execution oid t1 pid i1 BUY p1 0 tid p2]
+
+        -- CoAgressor's Orderlog
+        oid' <- getNextOrderlogIndex
+        tell [Execution oid' t1 pid i2 SELL p2 0 tid p2]
 
         return ( BothMatched (Trade tid pid p2 v1 f t1 side))
 
       GT -> do
         let v' = v1 - v2
 
-        -- Agressor's Orderlog
-        oid <- getNextOrderlogIndex
-        -- tell [Execution oid t1 s1 i1 BUY p1 v' tid p2]
-
-        -- CoAgressor's Orderlog
-        oid' <- getNextOrderlogIndex
-        -- tell [Execution oid' t1 s2 i2 SELL p2 (Volume 0) tid p2]
-
         tid <- getNextTradeId
         pid <- asks productId
         f <- asks fee
 
+        -- Agressor's Orderlog
+        oid <- getNextOrderlogIndex
+        tell [Execution oid t1 pid i1 BUY p1 v' tid p2]
+
+        -- CoAgressor's Orderlog
+        oid' <- getNextOrderlogIndex
+        tell [Execution oid' t1 pid i2 SELL p2 0 tid p2]
+
         return ( AgressorLeft (modifySize a v') (Trade tid pid p2 v2 f t1 side))
       where
         side = getOrderSide a
+        i1 = getOrderId a
+        i2 = getOrderId b
         p1 = getOrderPrice a
         p2 = getOrderPrice b
         v1 = getOrderSize a

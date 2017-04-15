@@ -21,6 +21,7 @@ library
                      , Trading.Exchange.Matching
                      , Trading.Exchange.OrderBook
                      , Trading.Exchange.Order
+                     , Trading.Exchange.OrderlogRecord
                      
   -- other-modules:       
   -- other-extensions:    

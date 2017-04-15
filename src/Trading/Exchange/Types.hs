@@ -29,7 +29,7 @@ data MatchingEnv =
               , productName   :: !String
               , executionTime :: !UTCTime -- ^ Fixed execution time.
               , fee           :: Fee
-              } deriving (Generic, Show)
+              } deriving Show
 
 
 instance Eq MatchingEnv where
@@ -46,7 +46,7 @@ data MatchResult a b
   | CoAgressorLeft !b Trade
   | BothMatched Trade
   | NotMatched !a !b
-  deriving (Generic, Eq, Show)
+  deriving (Eq, Show)
 
 
 -- | Result of mathcing of 2 Orders.
@@ -63,11 +63,3 @@ data Trade =
 
 instance Eq Trade where
   (==) = (==) `on` tradeId
-
-
--- | Log of all activities.
-data OrderlogRecord
-  = New
-  | Canceled
-  | Change
-  deriving (Generic, Show)
