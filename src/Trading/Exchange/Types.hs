@@ -42,9 +42,9 @@ data Side = BUY | SELL deriving (Generic, Show, Eq)
 
 -- | Intermidiate result of matching.
 data MatchResult a b
-  = AgressorLeft !a
-  | CoAgressorLeft !b
-  | BothMatched
+  = AgressorLeft !a Trade
+  | CoAgressorLeft !b Trade
+  | BothMatched Trade
   | NotMatched !a !b
   deriving (Generic, Eq, Show)
 
