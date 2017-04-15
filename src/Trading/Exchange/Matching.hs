@@ -9,8 +9,6 @@ module Trading.Exchange.Matching where
 
 import           Control.Lens
 import           Control.Monad.RWS.Strict
-import           Data.Function                   (on)
-import           Data.Set                        (Set)
 import qualified Data.Set                        as S
 import           Trading.Exchange.Order
 import           Trading.Exchange.OrderBook
