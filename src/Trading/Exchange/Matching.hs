@@ -47,11 +47,11 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
 
   drawBestCoOrder :: Base (Maybe b)
 
-  fullfill :: a -> b -> Bool
+  isFillableBy :: a -> b -> Bool
 
   match :: a -> b -> Base (MatchResult a b)
   match a b =
-    if not $ fullfill a b
+    if not $ isFillableBy a b
     then return (NotMatched a b)
     else case compare v1 v2 of
 
@@ -151,7 +151,7 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
 
 instance Matching (Order 'BUY) (Order 'SELL) where
 
-  fullfill buy sell = buy^.orderPrice >= sell^.orderPrice
+  isFillableBy buy sell = buy^.orderPrice >= sell^.orderPrice
 
   drawBestCoOrder = do
     book <- get
@@ -159,7 +159,7 @@ instance Matching (Order 'BUY) (Order 'SELL) where
     case mb of
       Nothing -> return Nothing
       Just (x, xs) -> do
-        modify (set orderBookAsks xs)
+        orderBookAsks .= xs
         return $ Just x
 
   insertM buy = modify (insertBuy buy)
@@ -169,7 +169,7 @@ instance Matching (Order 'BUY) (Order 'SELL) where
 
 instance Matching (Order 'SELL) (Order 'BUY) where
 
-  fullfill sell buy = sell^.orderPrice <= buy^.orderPrice
+  isFillableBy sell buy = sell^.orderPrice <= buy^.orderPrice
 
   drawBestCoOrder = do
     book <- get
@@ -177,7 +177,7 @@ instance Matching (Order 'SELL) (Order 'BUY) where
     case mb of
       Nothing -> return Nothing
       Just (x, xs) -> do
-        modify (set orderBookBids xs)
+        orderBookBids .= xs
         return $ Just x
 
   insertM sell = modify (insertSell sell)

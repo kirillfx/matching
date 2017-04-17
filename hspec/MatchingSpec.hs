@@ -4,6 +4,7 @@
 
 module MatchingSpec where
 
+import           Control.Lens
 import           Control.Monad.RWS.Strict        (runRWS)
 import           Data.Time
 import           Test.Hspec
@@ -33,17 +34,19 @@ matchingSpec = do
 
   describe "Insertion" $ do
 
-    let (_, book, ls1) = runRWS insertB0 (e t0) emptyOrderBook
+    let (_, _, ls1) = runRWS insertB0 (e t0) emptyOrderBook
 
     it "generates non empty Orderlog for BUY insertion" $ do
       ls1 `shouldNotBe` mempty
+
     it "OrderlogRecord result" $ do
       head ls1 `shouldBe` (Insertion 0 (getOrderCreationTime b0) 0 BUY 0 100 10)
 
-    let (_,_,ls2) = runRWS insertB0 (e t0) emptyOrderBook
+    let (_,_,ls2) = runRWS insertS0 (e t0) emptyOrderBook
 
     it "generates non empty Orderlog for SELL insertion" $ do
       ls2 `shouldNotBe` mempty
+
     it "OrderlogRecord result" $ do
       head ls2 `shouldBe` (Insertion 0 (getOrderCreationTime s0) 0 SELL 0 100 10)
 
@@ -55,7 +58,10 @@ matchingSpec = do
           (ts,book',ls) = runRWS prog (e t0) emptyOrderBook
 
       ts `shouldNotBe` mempty
+
       head ts `shouldBe` (Trade 0 0 100 10 0.0 (getOrderCreationTime s0) SELL)
+
+      book'^.registry `shouldBe` mempty
 
     it "return matching result of the equally sized orders in opposite order" $ do
 
@@ -63,4 +69,7 @@ matchingSpec = do
           (ts,book',ls) = runRWS prog (e t0) emptyOrderBook
 
       ts `shouldNotBe` mempty
+
       head ts `shouldBe` (Trade 0 0 100 10 0.0 (getOrderCreationTime b0) BUY)
+
+      book'^.registry `shouldBe` mempty
