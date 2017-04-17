@@ -39,8 +39,14 @@ cancelOrderM oid = do
   book <- get
   let (book', e) = cancelOrder oid book
   put book'
-  -- TODO: Orderlog
-  return e
+  case e of
+    Left x -> return $ Left x
+    Right (_,s,p) -> do
+      logId <- getNextOrderlogIndex
+      t <- asks executionTime
+      pid <- asks productId
+      tell [Deletion logId t pid s oid p 0]
+      return $ Right oid
 
 
 class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where

@@ -51,7 +51,7 @@ insertOrder (Right x) book =
        & registry.at (x^.orderId) ?~ (BUY, x^.orderPrice)
 
 
-cancelOrder :: OrderId -> OrderBook -> (OrderBook, Either String OrderId)
+cancelOrder :: OrderId -> OrderBook -> (OrderBook, Either String (OrderId,Side,Price))
 cancelOrder oid book = case book^.registry.at oid of
 
   Nothing -> (book, Left $ show oid <> "Not presend")
@@ -59,7 +59,7 @@ cancelOrder oid book = case book^.registry.at oid of
   Just (side,price) -> case side of
 
     BUY -> (book & orderBookBids  %~ (S.filter (not . (== oid) . _orderId))
-                 & registry.at oid .~ Nothing, Right oid)
+                 & registry.at oid .~ Nothing, Right (oid, side, price))
 
     SELL -> (book & orderBookAsks %~ (S.filter (not . (== oid) . _orderId))
-                  & registry.at oid .~ Nothing, Right oid)
+                  & registry.at oid .~ Nothing, Right (oid, side, price))
