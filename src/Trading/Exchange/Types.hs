@@ -6,7 +6,6 @@
 
 module Trading.Exchange.Types where
 
-import           Data.Binary     (Binary (..))
 import           Data.Function   (on)
 import           Data.Scientific
 import           Data.Time
@@ -38,28 +37,3 @@ instance Eq MatchingEnv where
 
 -- | Direction of Order, Trade.
 data Side = BUY | SELL deriving (Generic, Show, Eq)
-
-
--- | Intermidiate result of matching.
-data MatchResult a b
-  = AgressorLeft !a Trade
-  | CoAgressorLeft !b Trade
-  | BothMatched Trade
-  | NotMatched !a !b
-  deriving (Eq, Show)
-
-
--- | Result of mathcing of 2 Orders.
-data Trade =
-  Trade { tradeId        :: !TradeId
-        , tradeProductId :: !ProductId
-        , tradePrice     :: !Price
-        , tradeSize      :: !Size
-        , tradeFee       :: !Fee
-        , tradeTime      :: !UTCTime
-        , tradeDirection :: !Side
-        } deriving (Generic, Show)
-
-
-instance Eq Trade where
-  (==) = (==) `on` tradeId

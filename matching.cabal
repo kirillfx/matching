@@ -22,8 +22,9 @@ library
                      , Trading.Exchange.OrderBook
                      , Trading.Exchange.Order
                      , Trading.Exchange.OrderlogRecord
+                     , Trading.Exchange.Trade
                      
-  -- other-modules:       
+  other-modules:       Trading.Exchange.MatchResult
   -- other-extensions:    
   build-depends:       base >=4.9 && <4.10
                      , transformers
@@ -48,9 +49,12 @@ test-suite hspec
   main-is: Spec.hs
   hs-source-dirs: hspec
   build-depends: base >=4.9 && <4.10
+               , transformers
+               , mtl
                , either
                , hspec >= 2.2.3
                , lens
+               , time
                , matching
                
   ghc-options: -Wall
@@ -61,7 +65,7 @@ test-suite hspec
 
 executable app
   main-is:             Main.hs
-  hs-source-dirs:      exchangeTest
+  hs-source-dirs:      app
   --other-modules:
   build-depends:       base >=4.9 && <4.10
                      , transformers

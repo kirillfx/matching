@@ -12,6 +12,7 @@ import           Trading.Exchange.Matching
 import           Trading.Exchange.Order
 import           Trading.Exchange.OrderBook
 import           Trading.Exchange.OrderlogRecord
+import           Trading.Exchange.Trade
 import           Trading.Exchange.Types
 
 

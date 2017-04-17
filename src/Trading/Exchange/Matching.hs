@@ -10,9 +10,11 @@ module Trading.Exchange.Matching where
 import           Control.Lens
 import           Control.Monad.RWS.Strict
 import qualified Data.Set                        as S
+import           Trading.Exchange.MatchResult
 import           Trading.Exchange.Order
 import           Trading.Exchange.OrderBook
 import           Trading.Exchange.OrderlogRecord
+import           Trading.Exchange.Trade
 import           Trading.Exchange.Types
 
 type Base = RWS MatchingEnv [OrderlogRecord] OrderBook
