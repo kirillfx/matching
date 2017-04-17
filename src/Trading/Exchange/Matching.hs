@@ -59,60 +59,48 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
   match a b =
     if not $ isFillableBy a b
     then return (NotMatched a b)
-    else case compare v1 v2 of
+    else do
+      tid <- getNextTradeId
+      pid <- asks productId
+      f <- asks fee
 
-      LT -> do
-        let v' = v2 - v1
+      case compare v1 v2 of
 
-        tid <- getNextTradeId
-        pid <- asks productId
-        f <- asks fee
+        LT -> do
+          let v' = v2 - v1
+          -- Agressor's Orderlog
+          oid <- getNextOrderlogIndex
+          tell [Execution oid t1 pid i1 (getOrderSide a) p1 0 tid p2]
+          -- CoAgressor's Orderlog
+          oid' <- getNextOrderlogIndex
+          tell [Execution oid' t1 pid i2 (getOrderSide b) p2 v' tid p2]
 
-        -- Agressor's Orderlog
-        oid <- getNextOrderlogIndex
-        tell [Execution oid t1 pid i1 (getOrderSide a) p1 0 tid p2]
+          return ( CoAgressorLeft (modifySize b v') (Trade tid pid p2 v1 f t1 side))
 
-        -- CoAgressor's Orderlog
-        oid' <- getNextOrderlogIndex
-        tell [Execution oid' t1 pid i2 (getOrderSide b) p2 v' tid p2]
+        EQ -> do
+          -- Agressor's Orderlog
+          oid <- getNextOrderlogIndex
+          tell [Execution oid t1 pid i1 (getOrderSide a) p1 0 tid p2]
+          -- CoAgressor's Orderlog
+          oid' <- getNextOrderlogIndex
+          tell [Execution oid' t1 pid i2 (getOrderSide b) p2 0 tid p2]
 
-        return ( CoAgressorLeft (modifySize b v') (Trade tid pid p2 v1 f t1 side))
+          modify (registry.at i2 .~ Nothing)
 
-      EQ -> do
-        tid <- getNextTradeId
-        pid <- asks productId
-        f <- asks fee
+          return ( BothMatched (Trade tid pid p2 v1 f t1 side))
 
-        -- Agressor's Orderlog
-        oid <- getNextOrderlogIndex
-        tell [Execution oid t1 pid i1 (getOrderSide a) p1 0 tid p2]
+        GT -> do
+          let v' = v1 - v2
+          -- Agressor's Orderlog
+          oid <- getNextOrderlogIndex
+          tell [Execution oid t1 pid i1 BUY p1 v' tid p2]
+          -- CoAgressor's Orderlog
+          oid' <- getNextOrderlogIndex
+          tell [Execution oid' t1 pid i2 SELL p2 0 tid p2]
 
-        -- CoAgressor's Orderlog
-        oid' <- getNextOrderlogIndex
-        tell [Execution oid' t1 pid i2 (getOrderSide b) p2 0 tid p2]
+          modify (registry.at i2 .~ Nothing)
 
-        modify (registry.at i2 .~ Nothing)
-
-        return ( BothMatched (Trade tid pid p2 v1 f t1 side))
-
-      GT -> do
-        let v' = v1 - v2
-
-        tid <- getNextTradeId
-        pid <- asks productId
-        f <- asks fee
-
-        -- Agressor's Orderlog
-        oid <- getNextOrderlogIndex
-        tell [Execution oid t1 pid i1 BUY p1 v' tid p2]
-
-        -- CoAgressor's Orderlog
-        oid' <- getNextOrderlogIndex
-        tell [Execution oid' t1 pid i2 SELL p2 0 tid p2]
-
-        modify (registry.at i2 .~ Nothing)
-
-        return ( AgressorLeft (modifySize a v') (Trade tid pid p2 v2 f t1 side))
+          return ( AgressorLeft (modifySize a v') (Trade tid pid p2 v2 f t1 side))
       where
         side = getOrderSide a
         i1 = getOrderId a
