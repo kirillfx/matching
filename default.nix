@@ -1,6 +1,6 @@
 { mkDerivation, aeson, base, binary, bytestring, comonad
-, containers, either, free, hspec, lens, mtl, scientific, stdenv
-, time, transformers, unordered-containers
+, containers, criterion, either, free, hspec, lens, mtl, scientific
+, stdenv, time, transformers, unordered-containers
 }:
 mkDerivation {
   pname = "matching";
@@ -16,7 +16,9 @@ mkDerivation {
     aeson base binary bytestring comonad containers free lens mtl
     scientific time transformers unordered-containers
   ];
-  testHaskellDepends = [ base either hspec lens ];
+  testHaskellDepends = [
+    base criterion either hspec lens mtl time transformers
+  ];
   description = "Order matching algorithm";
   license = stdenv.lib.licenses.unfree;
 }
