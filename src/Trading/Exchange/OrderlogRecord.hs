@@ -1,9 +1,13 @@
 -- |
 
+{-# LANGUAGE DeriveGeneric #-}
+
 module Trading.Exchange.OrderlogRecord where
 
+import           Control.DeepSeq
 import           Data.Function          (on)
 import           Data.Time
+import           GHC.Generics
 import           Trading.Exchange.Types
 
 
@@ -36,7 +40,7 @@ data OrderlogRecord
               , orderlogTradeID    :: TradeId
               , orderlogTradePrice :: Price
               }
-  deriving (Show)
+  deriving (Generic, Show)
 
 
 instance Eq OrderlogRecord where
@@ -45,3 +49,5 @@ instance Eq OrderlogRecord where
 
 instance Ord OrderlogRecord where
   compare = compare `on` orderlogID
+
+instance NFData OrderlogRecord

@@ -4,6 +4,7 @@
 
 module Trading.Exchange.Trade where
 
+import           Control.DeepSeq
 import           Data.Function          (on)
 import           Data.Time              (UTCTime)
 import           GHC.Generics
@@ -24,3 +25,6 @@ data Trade =
 
 instance Eq Trade where
   (==) = (==) `on` tradeId
+
+
+instance NFData Trade

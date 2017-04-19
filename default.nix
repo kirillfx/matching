@@ -1,6 +1,7 @@
 { mkDerivation, aeson, base, binary, bytestring, comonad
-, containers, criterion, either, free, hspec, lens, mtl, scientific
-, stdenv, time, transformers, unordered-containers
+, containers, criterion, deepseq, either, free, hspec, lens
+, MonadRandom, mtl, random, scientific, stdenv, time, transformers
+, unordered-containers
 }:
 mkDerivation {
   pname = "matching";
@@ -9,15 +10,16 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    aeson base binary bytestring comonad containers free lens mtl
-    scientific time transformers unordered-containers
+    aeson base binary bytestring comonad containers deepseq free lens
+    MonadRandom mtl scientific time transformers unordered-containers
   ];
   executableHaskellDepends = [
-    aeson base binary bytestring comonad containers free lens mtl
-    scientific time transformers unordered-containers
+    aeson base binary bytestring comonad containers criterion free lens
+    MonadRandom mtl random scientific time transformers
+    unordered-containers
   ];
   testHaskellDepends = [
-    base criterion either hspec lens mtl time transformers
+    base either hspec lens MonadRandom mtl time transformers
   ];
   description = "Order matching algorithm";
   license = stdenv.lib.licenses.unfree;

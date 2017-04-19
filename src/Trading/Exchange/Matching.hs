@@ -142,7 +142,6 @@ class (OrderLike a, OrderLike b) => Matching a b | a -> b, b -> a where
       v1 = getOrderSize order
 
 
-
 instance Matching (Order 'BUY) (Order 'SELL) where
 
   isFillableBy buy sell = buy^.orderPrice >= sell^.orderPrice

@@ -1,15 +1,18 @@
 -- | OrderBook data structure definition.
 
 {-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Trading.Exchange.OrderBook where
 
+import           Control.DeepSeq
 import           Control.Lens           hiding ((<|), (|>))
 import           Data.HashMap.Strict    (HashMap)
 import           Data.Monoid            ((<>))
 import           Data.Set               (Set)
 import qualified Data.Set               as S
+import           GHC.Generics
 import           Trading.Exchange.Order
 import           Trading.Exchange.Types
 
@@ -21,7 +24,10 @@ data OrderBook =
             , _registry          :: HashMap OrderId (Side,Price)
             , _nextOrderlogIndex :: Integer
             , _nextTradeId       :: TradeId
-            } deriving (Show)
+            } deriving (Generic, Show)
+
+
+instance NFData OrderBook
 
 
 emptyOrderBook :: OrderBook

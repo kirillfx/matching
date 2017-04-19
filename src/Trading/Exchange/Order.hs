@@ -9,6 +9,7 @@
 module Trading.Exchange.Order where
 
 import           Control.Arrow          ((&&&))
+import           Control.DeepSeq
 import           Control.Lens
 import           Data.Function          (on)
 import           Data.Time
@@ -60,3 +61,11 @@ instance OrderLike (Order 'SELL) where
   getOrderCreationTime = _orderCreationTime
   getOrderSide = const SELL
   modifySize x v = set orderSize v x
+
+
+instance NFData (Order 'BUY) where
+  rnf = rnf
+
+
+instance NFData (Order 'SELL) where
+  rnf = rnf

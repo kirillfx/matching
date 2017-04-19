@@ -26,19 +26,21 @@ library
                      
   other-modules:       Trading.Exchange.MatchResult
   -- other-extensions:    
-  build-depends:       base >=4.9 && <4.10
-                     , transformers
+  build-depends:       MonadRandom >= 0.5.1
+                     , aeson
+                     , base >=4.9 && <4.10
+                     , binary
+                     , bytestring
+                     , comonad
+                     , containers
+                     , deepseq
+                     , free
+                     , lens
                      , mtl
                      , scientific
                      , time
-                     , containers
+                     , transformers
                      , unordered-containers
-                     , bytestring
-                     , binary
-                     , aeson
-                     , free
-                     , comonad
-                     , lens
                      
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -48,14 +50,16 @@ test-suite hspec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   hs-source-dirs: hspec
-  build-depends: base >=4.9 && <4.10
-               , transformers
-               , mtl
+  build-depends: MonadRandom
+               , MonadRandom >= 0.5.1
+               , base >=4.9 && <4.10
                , either
                , hspec >= 2.2.3
                , lens
-               , time
                , matching
+               , mtl
+               , time
+               , transformers
                
   ghc-options: -Wall
   other-modules:
@@ -63,38 +67,45 @@ test-suite hspec
   default-language: Haskell2010
 
 
-test-suite performance
-  type:           exitcode-stdio-1.0
-  build-depends:    base
-                  , transformers
-                  , mtl
+executable performance
+  -- type:           exitcode-stdio-1.0
+  build-depends:    MonadRandom
+                  , MonadRandom >= 0.5.1
+                  , base
+                  , containers
                   , criterion
-                  , time
                   , lens
                   , matching
+                  , mtl
+                  , random
+                  , time
+                  , transformers
+                  , unordered-containers
                   
   hs-source-dirs: crit
   main-is:        Main.hs
   ghc-options:    -Wall -rtsopts -O2
+  default-language:    Haskell2010
 
   
 executable app
   main-is:             Main.hs
   hs-source-dirs:      app
   --other-modules:
-  build-depends:       base >=4.9 && <4.10
-                     , transformers
+  build-depends:       MonadRandom >= 0.5.1
+                     , aeson
+                     , base >=4.9 && <4.10
+                     , binary
+                     , bytestring
+                     , comonad
+                     , containers
+                     , free
+                     , lens
+                     , matching
                      , mtl
                      , scientific
                      , time
-                     , containers
+                     , transformers
                      , unordered-containers
-                     , bytestring
-                     , binary
-                     , aeson
-                     , free
-                     , comonad
-                     , lens
-                     , matching
 
   default-language:    Haskell2010

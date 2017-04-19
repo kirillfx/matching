@@ -6,6 +6,7 @@
 
 module Trading.Exchange.Types where
 
+import           Control.DeepSeq
 import           Data.Function   (on)
 import           Data.Scientific
 import           Data.Time
@@ -27,7 +28,7 @@ data MatchingEnv =
   MatchingEnv { productId     :: !ProductId
               , productName   :: !String
               , executionTime :: !UTCTime -- ^ Fixed execution time.
-              , fee           :: Fee
+              , fee           :: !Fee
               } deriving Show
 
 
@@ -37,3 +38,6 @@ instance Eq MatchingEnv where
 
 -- | Direction of Order, Trade.
 data Side = BUY | SELL deriving (Generic, Show, Eq)
+
+
+instance NFData Side
